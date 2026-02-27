@@ -24,8 +24,8 @@ const C = {
   },
 
   // ── Physics ───────────────────────────────────────────────
-  GRAVITY: 920,
-  TERMINAL_V: 1350,
+  GRAVITY: 3400,
+  TERMINAL_V: 3400,
 
   // ── Ethiopian Palette ─────────────────────────────────────
   COLOR: {
@@ -73,8 +73,8 @@ const C = {
     RADIUS: 18,
     SPEED: 225,
     SPRINT_MULT: 1.68,
-    JUMP_FORCE: 610,
-    DBL_JUMP: 520,
+    JUMP_FORCE: 1450,
+    DBL_JUMP: 1100,
     COYOTE_TIME: 0.10,
     JUMP_BUFFER: 0.12,
     DODGE_DIST: 155,
@@ -108,7 +108,7 @@ const C = {
     PROJ_SPEED: 420,
     PROJ_DAMAGE: 14,
     PROJ_LIFE: 2.2,
-    PROJ_GRAVITY: 260,
+    PROJ_GRAVITY: 600,
   },
 
   // ── Enemies ───────────────────────────────────────────────
@@ -123,7 +123,7 @@ const C = {
       DETECT_R: 340,
       LOSE_R: 520,
       SCORE: 10,
-      JUMP_FORCE: 530,
+      JUMP_FORCE: 720,
     },
     RIFLEMAN: {
       RADIUS: 14,
@@ -135,7 +135,7 @@ const C = {
       DETECT_R: 420,
       LOSE_R: 640,
       SCORE: 15,
-      JUMP_FORCE: 500,
+      JUMP_FORCE: 680,
       PREFERRED_DIST: 220,
     },
     BOSS: {
@@ -150,7 +150,7 @@ const C = {
       DETECT_R: 800,
       SCORE: 300,
       PHASE2_HP: 185,
-      JUMP_FORCE: 580,
+      JUMP_FORCE: 780,
     },
   },
 

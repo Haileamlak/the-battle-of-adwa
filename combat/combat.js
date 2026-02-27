@@ -73,14 +73,14 @@ class Projectile {
         ctx.translate(p.x, p.y); ctx.rotate(angle);
 
         if (this.type === 'arrow') {
-            // Draw a spear
-            ctx.strokeStyle = '#5a3e1a'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.moveTo(-25, 0); ctx.lineTo(25, 0); ctx.stroke();
+            // Draw a spear (270px total: 90% of old 300px)
+            ctx.strokeStyle = '#5a3e1a'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(-135, 0); ctx.lineTo(135, 0); ctx.stroke();
             // Spear head
-            ctx.fillStyle = '#c0c0c0';
-            ctx.beginPath(); ctx.moveTo(25, 0); ctx.lineTo(12, -7); ctx.lineTo(12, 7); ctx.fill();
+            ctx.fillStyle = '#e0e0e0';
+            ctx.beginPath(); ctx.moveTo(135, 0); ctx.lineTo(110, -10); ctx.lineTo(110, 10); ctx.fill();
             // Glow/Trailing effect
-            ctx.shadowColor = '#d4a017'; ctx.shadowBlur = 4;
+            ctx.shadowColor = '#d4a017'; ctx.shadowBlur = 6;
         } else {
             const grd = ctx.createRadialGradient(0, 0, 0, this.size * 0.5, 0, this.size * 2.2);
             grd.addColorStop(0, '#ffffcc'); grd.addColorStop(0.4, '#ffaa30'); grd.addColorStop(1, 'transparent');
@@ -143,11 +143,13 @@ class CombatSystem {
         const dy = targetY - attacker.y;
         const d = Math.hypot(dx, dy) || 1;
         const spd = (type === 'arrow' ? C.COMBAT.PROJ_SPEED * 1.5 : C.COMBAT.PROJ_SPEED) * speedScale;
-        // Spawn slightly offset from attacker center to avoid immediate self-collision
-        const spawnX = attacker.x + (attacker.facingDir * (attacker.radius + 10));
-        const spawnY = attacker.y - 15;
+
+        // Spawn from chest position (attacker.y is at the feet)
+        const spawnX = attacker.x + (attacker.facingDir * (attacker.radius + 15));
+        const spawnY = attacker.y - 95;
+
         this.projectiles.push(
-            new Projectile(attacker, spawnX, spawnY, (dx / d) * spd, (dy / d) * spd - 30, damage, size, type)
+            new Projectile(attacker, spawnX, spawnY, (dx / d) * spd, (dy / d) * spd - 10, damage, size, type)
         );
     }
 
@@ -159,8 +161,23 @@ class CombatSystem {
             for (const target of entities) {
                 if (!target || !target.alive || target === proj.firer) continue;
 
-                const dx = target.x - proj.x, dy = (target.y - target.radius) - proj.y;
-                if (Math.hypot(dx, dy) < target.radius + proj.size) {
+                // For long arrows, check hit at multiple points along the shaft (135px is the tip)
+                const checkPoints = proj.type === 'arrow' ? [135, 90, 45, 0] : [0];
+                let isHit = false;
+
+                const angle = Math.atan2(proj.vy, proj.vx);
+                const cos = Math.cos(angle), sin = Math.sin(angle);
+
+                for (const offset of checkPoints) {
+                    const px = proj.x + cos * offset;
+                    const py = proj.y + sin * offset;
+                    const dx = target.x - px, dy = (target.y - target.radius) - py;
+                    if (Math.hypot(dx, dy) < target.radius + proj.size + 15) {
+                        isHit = true; break;
+                    }
+                }
+
+                if (isHit) {
                     target.receiveDamage(proj.damage, {
                         knockbackX: proj.vx > 0 ? C.COMBAT.KNOCKBACK_X * 0.5 : -C.COMBAT.KNOCKBACK_X * 0.5,
                         knockbackY: -80,

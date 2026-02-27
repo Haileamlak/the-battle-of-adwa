@@ -3,10 +3,14 @@
 
 <head>
   <meta charset="UTF-8" />
+  <!-- icon -->
+  <link rel="icon" type="image/png" href="assets/logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Haileamlak Belachew" />
+  <meta name="keywords" content="Adwa, Ethiopia, Battle of Adwa, Haileamlak Belachew" />
   <title>የአድዋ ጦርነት — The Battle of Adwa</title>
   <meta name="description"
-    content="A browser action game set during the historic Battle of Adwa, 1896 — Ethiopia's victory over Italian colonial forces." />
+    content="An action game set during the historic Battle of Adwa, 1896 — Ethiopia's victory over Italian colonial forces." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -31,12 +35,13 @@
       <div class="title-bg-overlay"></div>
       <div class="title-content">
         <div class="title-header">
-          <img src="assets/logo.png" alt="Adwa Logo" class="game-logo" />
+          <!-- <img src="assets/logo.png" alt="Adwa Logo" class="game-logo" /> -->
         </div>
-        <img src="assets/battleofadwa.png" alt="The Battle of Adwa" class="title-aesthetic-image" />
+        <img src="assets/battleofadwa2.png" alt="The Battle of Adwa" class="title-aesthetic-image" />
 
-        <div class="ethiopian-cross-icon">✞</div>
-        <h1 class="title-ethiopic">የአድዋ ጦርነት</h1>
+        <!-- logo image here -->
+         <div ><img src="assets/logo.png" alt="Adwa Logo" class="game-logo" />
+        <h1 class="title-ethiopic">የአድዋ ጦርነት</h1></div>
         <h2 class="title-latin">THE BATTLE OF ADWA</h2>
         <p class="title-subtitle">1st March 1896 — The Mountains of Adwa, Ethiopia</p>
         <div class="title-divider">
@@ -48,10 +53,12 @@
           Emperor Menelik II leads Ethiopia's warriors against Italian colonial forces.<br />
           Defend your homeland. Drive back the invaders. <em>Ethiopia shall prevail.</em>
         </p>
-        <button id="btn-start" class="btn-primary">⚔ Begin the Battle</button>
+        <div class="title-actions">
+          <button id="btn-start" class="btn-primary">⚔ Begin the Battle</button>
+        </div>
 
         <details class="how-to-play-foldable">
-          <summary>How to Play 🔽</summary>
+          <summary>How to Play ⋁</summary>
           <div class="title-controls">
             <div class="control-row"><kbd>WASD</kbd> / <kbd>Arrows</kbd> — Move</div>
             <div class="control-row"><kbd>Shift</kbd> — Sprint &nbsp;|&nbsp; <kbd>Space</kbd> — Dodge</div>
@@ -70,6 +77,7 @@
       <!-- HUD -->
       <div id="hud">
         <div id="hud-left">
+          <img src="assets/logo.png" alt="Adwa Logo" class="hud-logo" />
           <div class="hud-label">ጄነራል — GENERAL FIKRE</div>
           <div class="health-bar-container" id="player-health-container">
             <div class="health-bar-fill" id="player-health-fill"></div>
@@ -114,7 +122,7 @@
     <!-- PAUSE SCREEN -->
     <div id="pause-screen" class="screen overlay-screen hidden">
       <div class="overlay-content">
-        <div class="ethiopian-cross-icon">✞</div>
+        <div><img src="assets/logo.png" alt="Adwa Logo" class="game-logo" /></div>
         <h2>— PAUSED —</h2>
         <p>ዕረፍት | Rest your blade, warrior</p>
         <button id="btn-resume" class="btn-primary">▶ Resume</button>
@@ -127,7 +135,7 @@
     <div id="victory-screen" class="screen overlay-screen hidden">
       <div class="overlay-content victory-content">
         <div class="victory-rays"></div>
-        <div class="ethiopian-cross-icon gold-cross">✞</div>
+        <div><img src="assets/logo.png" alt="Adwa Logo" class="game-logo" /></div>
         <h2 class="victory-title">የድል ቀን</h2>
         <h3 class="victory-subtitle">VICTORY — ETHIOPIA PREVAILS!</h3>
         <p class="victory-lore">
@@ -144,7 +152,7 @@
     <!-- DEFEAT SCREEN -->
     <div id="defeat-screen" class="screen overlay-screen hidden">
       <div class="overlay-content defeat-content">
-        <div class="ethiopian-cross-icon red-cross">✞</div>
+        <div><img src="assets/logo.png" alt="Adwa Logo" class="game-logo" /></div>
         <h2 class="defeat-title">ሽንፈት</h2>
         <h3 class="defeat-subtitle">THE WARRIOR HAS FALLEN</h3>
         <p class="defeat-lore">

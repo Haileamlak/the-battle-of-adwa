@@ -130,7 +130,7 @@ class Player {
             } else if (this.jumpsLeft > 0) {
                 this.vy = -C.PLAYER.DBL_JUMP;
                 this.jumpsLeft = 0;
-                this.stretch = 1.35;
+                this.stretch = 1.15;
             }
         }
 
@@ -187,7 +187,7 @@ class Player {
             this.stretch = Math.max(1, this.stretch - dt * 15);
             this.squash = Math.max(1, this.squash - dt * 15);
         } else {
-            this.stretch = 1.05 + Math.abs(this.vy / 2000);
+            this.stretch = 1.05 + Math.abs(this.vy / 3000);
             this.squash = 0.95;
         }
 

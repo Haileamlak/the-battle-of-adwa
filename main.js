@@ -68,9 +68,13 @@ class Game {
         const get = id => document.getElementById(id);
         get('btn-start')?.addEventListener('click', () => this.startGame());
         get('btn-play-again')?.addEventListener('click', () => this.startGame());
-        get('btn-retry')?.addEventListener('click', () => this.startGame());
+        get('btn-retry')?.addEventListener('click', () => this.restartGame());
+        get('btn-menu-defeat')?.addEventListener('click', () => this.returnToMainMenu());
         get('btn-resume')?.addEventListener('click', () => this.resume());
         get('btn-pause')?.addEventListener('click', () => this.pause());
+        get('btn-history')?.addEventListener('click', () => {
+            UI.playTrailer(() => { UI.showScreen('title-screen'); });
+        });
     }
 
     startGame() {
@@ -112,6 +116,29 @@ class Game {
 
     pause() { if (this.phase === GamePhase.PLAYING) this.phase = GamePhase.PAUSED; UI.showScreen('pause-screen'); }
     resume() { if (this.phase === GamePhase.PAUSED) { this.phase = GamePhase.PLAYING; UI.showScreen('game-screen'); this._lastTime = performance.now(); this._rafId = requestAnimationFrame(this._loop); } }
+
+    restartGame() {
+        if (this._rafId) cancelAnimationFrame(this._rafId); // Stop current game loop
+        this._setup(); // Re-initialize game state
+        this.phase = GamePhase.PLAYING;
+        UI.showScreen('game-screen');
+        this._lastTime = performance.now();
+        this._rafId = requestAnimationFrame(this._loop);
+        UI.showWaveBanner('⚔ ENDLESS MARCH UPON ADWA ⚔'); // Show wave banner again
+    }
+
+    returnToMainMenu() {
+        if (this._rafId) cancelAnimationFrame(this._rafId); // Stop current game loop
+        this.phase = GamePhase.TITLE;
+        UI.showScreen('title-screen');
+        // Reset any ongoing game state that might persist
+        this.player = null;
+        this.enemies = [];
+        this.map = null;
+        this.combat = null;
+        this.input = null;
+        this._hasSeenTrailer = false; // Allow trailer to play again if desired
+    }
 
     _loop(timestamp) {
         if (this.phase !== GamePhase.PLAYING) return;
