@@ -1,17 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>የአድዋ ጦርነት — The Battle of Adwa</title>
-  <meta name="description" content="A browser action game set during the historic Battle of Adwa, 1896 — Ethiopia's victory over Italian colonial forces." />
+  <meta name="description"
+    content="A browser action game set during the historic Battle of Adwa, 1896 — Ethiopia's victory over Italian colonial forces." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Noto+Serif+Ethiopic:wdth,wght@75,400;75,700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Noto+Serif+Ethiopic:wdth,wght@75,400;75,700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="ui/ui.css" />
 </head>
+
 <body>
   <div id="game-wrapper">
+    <!-- TRAILER SCREEN -->
+    <div id="trailer-screen" class="screen hidden">
+      <div id="trailer-content">
+        <img id="trailer-image" src="" alt="Trailer Frame" />
+        <div id="trailer-text"></div>
+        <button id="btn-skip-trailer" class="btn-secondary">Skip Trailer</button>
+      </div>
+    </div>
+
     <!-- TITLE SCREEN -->
     <div id="title-screen" class="screen active">
       <div class="title-bg-overlay"></div>
@@ -26,17 +40,17 @@
           <span class="divider-right">⸻</span>
         </div>
         <p class="title-lore">
-          Emperor Menelik II leads Ethiopia's warriors against Italian colonial forces.<br/>
+          Emperor Menelik II leads Ethiopia's warriors against Italian colonial forces.<br />
           Defend your homeland. Drive back the invaders. <em>Ethiopia shall prevail.</em>
         </p>
         <div class="title-controls">
           <div class="control-row"><kbd>WASD</kbd> / <kbd>Arrows</kbd> — Move</div>
           <div class="control-row"><kbd>Shift</kbd> — Sprint &nbsp;|&nbsp; <kbd>Space</kbd> — Dodge</div>
-          <div class="control-row"><kbd>J</kbd> / <kbd>Click</kbd> — Attack &nbsp;|&nbsp; <kbd>K</kbd> — Heavy Attack</div>
+          <div class="control-row"><kbd>J</kbd> / <kbd>Click</kbd> — Attack &nbsp;|&nbsp; <kbd>K</kbd> — Heavy Attack
+          </div>
           <div class="control-row"><kbd>P</kbd> — Pause</div>
         </div>
         <button id="btn-start" class="btn-primary">⚔ Begin the Battle</button>
-        <button id="btn-howto" class="btn-secondary">How to Play</button>
       </div>
     </div>
 
@@ -108,8 +122,8 @@
         <h2 class="victory-title">የድል ቀን</h2>
         <h3 class="victory-subtitle">VICTORY — ETHIOPIA PREVAILS!</h3>
         <p class="victory-lore">
-          "March 1st, 1896 — Ethiopia stands sovereign.<br/>
-          The Battle of Adwa echoes through history as Africa's greatest victory<br/>
+          "March 1st, 1896 — Ethiopia stands sovereign.<br />
+          The Battle of Adwa echoes through history as Africa's greatest victory<br />
           against colonial conquest."
         </p>
         <div id="victory-stats"></div>
@@ -125,7 +139,7 @@
         <h2 class="defeat-title">ሽንፈት</h2>
         <h3 class="defeat-subtitle">THE WARRIOR HAS FALLEN</h3>
         <p class="defeat-lore">
-          Ethiopia's mountains remember your sacrifice.<br/>
+          Ethiopia's mountains remember your sacrifice.<br />
           Rise again — the battle is not yet over.
         </p>
         <div id="defeat-stats"></div>
@@ -148,4 +162,5 @@
   <script src="ui/ui.js"></script>
   <script src="main.js"></script>
 </body>
+
 </html>

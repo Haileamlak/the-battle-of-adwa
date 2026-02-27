@@ -1,72 +1,89 @@
 // ============================================================
-//  COMBAT — Hit detection, damage, combos, particles, effects
+//  COMBAT — Side-view hitboxes, projectiles, particles, effects
 // ============================================================
 
-// ── Particle (perspective-aware) ─────────────────────────────
 class Particle {
-    constructor(x, y, vx, vy, life, color, size, wz = 0) {
-        this.x = x; this.y = y;
-        this.wz = wz;   // world elevation at spawn — particles project from here
-        this.vx = vx; this.vy = vy;
-        this.vz = 40 + Math.random() * 60; // initial upward velocity in z
+    constructor(x, y, vx, vy, life, color, size) {
+        this.x = x; this.y = y; this.vx = vx; this.vy = vy;
         this.life = life; this.maxLife = life;
         this.color = color; this.size = size;
         this.active = true;
     }
-
     update(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-        this.wz = Math.max(0, this.wz + this.vz * dt);
-        this.vz -= 220 * dt;         // gravity in elevation space
-        this.vx *= 0.93;
-        this.life -= dt;
+        this.vy += C.GRAVITY * 0.35 * dt;
+        this.x += this.vx * dt; this.y += this.vy * dt;
+        this.vx *= 0.92; this.life -= dt;
         if (this.life <= 0) this.active = false;
     }
-
     draw(ctx, cam) {
-        const alpha = Math.max(0, this.life / this.maxLife);
-        const p = cam.project(this.x, this.y, this.wz);
-        ctx.globalAlpha = alpha;
+        const p = cam.project(this.x, this.y);
+        const a = Math.max(0, this.life / this.maxLife);
+        ctx.globalAlpha = a;
         ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, this.size * alpha + 0.5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.5, this.size * a), 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
     }
 }
 
-// ── Floating damage text ──────────────────────────────────────
 class FloatingText {
-    constructor(x, y, text, color = '#ffe060', size = 18, wz = 20) {
-        this.x = x; this.y = y; this.wz = wz;
-        this.text = text; this.color = color; this.size = size;
-        this.life = 1.1; this.maxLife = 1.1;
-        this.vy = -50; this.vzv = 60;
-        this.active = true;
+    constructor(x, y, text, color = '#ffe060', size = 18) {
+        this.x = x; this.y = y; this.text = text; this.color = color; this.size = size;
+        this.vy = -75; this.life = 1.05; this.maxLife = 1.05; this.active = true;
     }
-
-    update(dt) {
-        this.y += this.vy * dt;
-        this.wz = Math.max(0, this.wz + this.vzv * dt);
-        this.vzv -= 90 * dt;
-        this.vy *= 0.93;
-        this.life -= dt;
-        if (this.life <= 0) this.active = false;
-    }
-
+    update(dt) { this.y += this.vy * dt; this.vy *= 0.92; this.life -= dt; if (this.life <= 0) this.active = false; }
     draw(ctx, cam) {
-        const alpha = Math.max(0, this.life / this.maxLife);
-        const p = cam.project(this.x, this.y, this.wz);
-        ctx.globalAlpha = alpha;
+        const p = cam.project(this.x, this.y);
+        const a = Math.max(0, this.life / this.maxLife);
+        ctx.globalAlpha = a;
         ctx.font = `bold ${this.size}px Cinzel, serif`;
         ctx.textAlign = 'center';
-        ctx.strokeStyle = 'rgba(0,0,0,0.75)';
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 3;
         ctx.strokeText(this.text, p.x, p.y);
-        ctx.fillStyle = this.color;
-        ctx.fillText(this.text, p.x, p.y);
+        ctx.fillStyle = this.color; ctx.fillText(this.text, p.x, p.y);
         ctx.globalAlpha = 1;
+    }
+}
+
+// ── Projectile (bullet / cannonball) ─────────────────────────
+class Projectile {
+    constructor(x, y, vx, vy, damage, size = 5, type = 'bullet') {
+        this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+        this.damage = damage; this.size = size;
+        this.type = type;
+        this.life = C.COMBAT.PROJ_LIFE;
+        this.active = true;
+    }
+    update(dt, platforms) {
+        this.vy += C.COMBAT.PROJ_GRAVITY * dt;  // slight arc
+        this.x += this.vx * dt; this.y += this.vy * dt;
+        this.life -= dt; if (this.life <= 0) { this.active = false; return; }
+        // Hit platform
+        for (const p of platforms) {
+            if (this.x > p.left && this.x < p.right && this.y > p.top && this.y < p.bottom) {
+                this.active = false; return;
+            }
+        }
+    }
+    draw(ctx, cam) {
+        if (!this.active) return;
+        const p = cam.project(this.x, this.y);
+        const angle = Math.atan2(this.vy, this.vx);
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(angle);
+
+        if (this.type === 'arrow') {
+            // Draw a spear/arrow
+            ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.stroke();
+            ctx.fillStyle = '#e0e0e0';
+            ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(10, -4); ctx.lineTo(10, 4); ctx.fill();
+        } else {
+            const grd = ctx.createRadialGradient(0, 0, 0, this.size * 0.5, 0, this.size * 2.2);
+            grd.addColorStop(0, '#ffffcc'); grd.addColorStop(0.4, '#ffaa30'); grd.addColorStop(1, 'transparent');
+            ctx.fillStyle = grd;
+            ctx.beginPath(); ctx.ellipse(0, 0, this.size * 2.2, this.size * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
     }
 }
 
@@ -75,179 +92,147 @@ class CombatSystem {
     constructor() {
         this.particles = [];
         this.floatTexts = [];
+        this.projectiles = [];
     }
 
-    // ── Attack resolution ─────────────────────────────────────
+    // ── Melee (side-view horizontal hitbox) ───────────────────
     performAttack(attacker, targets, config) {
         const hits = [];
-        const aRange = config.range || C.COMBAT.ATTACK_RANGE;
+        const dir = attacker.facingDir || 1;
+        const range = config.range || C.COMBAT.ATTACK_RANGE;
         const dmg = config.damage || C.COMBAT.ATTACK_DAMAGE;
-        const kb = (config.knockback !== undefined) ? config.knockback : C.COMBAT.KNOCKBACK;
-        const arcHalf = Math.PI * 5 / 6;
-        const facingAngle = attacker.facing || 0;
+        const kbx = config.type === 'heavy' ? C.COMBAT.HEAVY_KBX : C.COMBAT.KNOCKBACK_X;
+        const kby = config.type === 'heavy' ? C.COMBAT.HEAVY_KBY : C.COMBAT.KNOCKBACK_Y;
 
         for (const target of targets) {
             if (!target.alive) continue;
-            if (target.invincible && target.invincible > 0) continue;
+            if (target.invincible > 0) continue;
             const dx = target.x - attacker.x;
             const dy = target.y - attacker.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist > aRange + target.radius) continue;
-            let angleDiff = Math.atan2(dy, dx) - facingAngle;
-            while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-            while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-            if (Math.abs(angleDiff) > arcHalf) continue;
+            // Must be in facing direction
+            if (dx * dir < -target.radius) continue;
+            // Horizontal range
+            if (Math.abs(dx) > range + target.radius) continue;
+            // Vertical range (body height)
+            if (Math.abs(dy) > attacker.radius * 2 + target.radius * 2) continue;
 
             target.receiveDamage(dmg, {
-                knockbackX: (dx / (dist || 1)) * kb,
-                knockbackY: (dy / (dist || 1)) * kb,
+                knockbackX: (dx >= 0 ? 1 : -1) * kbx,
+                knockbackY: kby,
                 type: config.type || 'normal',
             });
             hits.push(target);
-            this._spawnHitEffect(target.x, target.y, config.type, target.elevation || 0);
+            this._spawnHitEffect(target.x, target.y, config.type);
             this.floatTexts.push(new FloatingText(
                 target.x, target.y - target.radius,
                 `-${dmg}`,
                 config.type === 'heavy' ? '#ff8020' : '#ffe060',
                 config.type === 'heavy' ? 22 : 16,
-                (target.elevation || 0) + target.radius * 1.5,
             ));
         }
         return hits;
     }
 
-    performRangedAttack(attacker, target, damage) {
-        if (!target || !target.alive) return false;
-        if (target.invincible && target.invincible > 0) return false;
-        const dx = target.x - attacker.x, dy = target.y - attacker.y;
-        const dist = Math.hypot(dx, dy);
-        target.receiveDamage(damage, {
-            knockbackX: (dx / (dist || 1)) * 30,
-            knockbackY: (dy / (dist || 1)) * 30,
-            type: 'ranged',
-        });
-        this._spawnHitEffect(target.x, target.y, 'ranged', target.elevation || 0);
-        this.floatTexts.push(new FloatingText(
-            target.x, target.y - target.radius,
-            `-${damage}`,
-            '#ff6060', 16,
-            (target.elevation || 0) + target.radius,
-        ));
-        this._spawnBulletTrail(attacker, target);
-        return true;
+    // ── Ranged (fires Projectile) ──────────────────────────────
+    fireProjectile(attacker, targetX, targetY, damage, size = 5, type = 'bullet') {
+        const dx = targetX - attacker.x;
+        const dy = targetY - attacker.y;
+        const d = Math.hypot(dx, dy) || 1;
+        const spd = type === 'arrow' ? C.COMBAT.PROJ_SPEED * 1.5 : C.COMBAT.PROJ_SPEED;
+        this.projectiles.push(
+            new Projectile(attacker.x, attacker.y - 20, (dx / d) * spd, (dy / d) * spd - 50, damage, size, type)
+        );
     }
 
-    // ── Particles ─────────────────────────────────────────────
-    _spawnHitEffect(x, y, type, elev = 0) {
-        const count = C.PARTICLE.HIT_COUNT;
-        const isHeavy = type === 'heavy';
-        for (let i = 0; i < count + (isHeavy ? 5 : 0); i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 80 + Math.random() * 140;
-            this.particles.push(new Particle(
-                x + (Math.random() - 0.5) * 10,
-                y + (Math.random() - 0.5) * 10,
-                Math.cos(angle) * speed,
-                Math.sin(angle) * speed,
-                0.15 + Math.random() * 0.38,
-                isHeavy ? '#ff8020' : C.COLOR.HIT_SPARK,
-                isHeavy ? 4 : 3,
-                elev + 2,
-            ));
+    updateProjectiles(dt, platforms, target) {
+        for (const proj of this.projectiles) {
+            proj.update(dt, platforms);
+            if (!proj.active) continue;
+            if (!target || !target.alive) continue;
+            const dx = target.x - proj.x, dy = target.y - proj.y;
+            if (Math.hypot(dx, dy) < target.radius + proj.size) {
+                target.receiveDamage(proj.damage, {
+                    knockbackX: proj.vx > 0 ? C.COMBAT.KNOCKBACK_X * 0.5 : -C.COMBAT.KNOCKBACK_X * 0.5,
+                    knockbackY: -80,
+                    type: 'ranged',
+                });
+                this._spawnHitEffect(target.x, target.y, 'ranged');
+                this.floatTexts.push(new FloatingText(target.x, target.y - target.radius, `-${proj.damage}`, '#ff6060', 15));
+                proj.active = false;
+            }
         }
-        // Blood drops
+        this.projectiles = this.projectiles.filter(p => p.active);
+    }
+
+    // ── Effects ───────────────────────────────────────────────
+    _spawnHitEffect(x, y, type) {
+        const n = C.PARTICLE.HIT_COUNT + (type === 'heavy' ? 5 : 0);
+        for (let i = 0; i < n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const s = 70 + Math.random() * 130;
+            this.particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s - 60,
+                C.PARTICLE.LIFE_MIN + Math.random() * (C.PARTICLE.LIFE_MAX - C.PARTICLE.LIFE_MIN),
+                type === 'heavy' ? '#ff8020' : C.COLOR.HIT_SPARK,
+                type === 'heavy' ? 4 : 3));
+        }
         for (let i = 0; i < 3; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            this.particles.push(new Particle(
-                x, y,
-                Math.cos(angle) * (30 + Math.random() * 50),
-                Math.sin(angle) * (30 + Math.random() * 50),
-                0.4 + Math.random() * 0.45,
-                C.COLOR.BLOOD, 2, elev,
-            ));
+            const a = Math.random() * Math.PI; // downward arc for blood
+            this.particles.push(new Particle(x, y, Math.cos(a) * 45, Math.sin(a) * 55,
+                0.4 + Math.random() * 0.4, C.COLOR.BLOOD, 2));
         }
     }
 
-    _spawnBulletTrail(attacker, target) {
-        const steps = 7;
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            this.particles.push(new Particle(
-                attacker.x + (target.x - attacker.x) * t + (Math.random() - 0.5) * 4,
-                attacker.y + (target.y - attacker.y) * t + (Math.random() - 0.5) * 4,
-                0, 0,
-                0.07 + Math.random() * 0.1,
-                'rgba(255,210,60,0.85)', 2, 8,
-            ));
-        }
-    }
-
-    spawnDustParticle(x, y, elev = 0) {
+    spawnDustParticle(x, y) {
         for (let i = 0; i < C.PARTICLE.DUST_COUNT; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            this.particles.push(new Particle(
-                x + (Math.random() - 0.5) * 8, y + (Math.random() - 0.5) * 8,
-                Math.cos(angle) * (20 + Math.random() * 40),
-                Math.sin(angle) * (20 + Math.random() * 40),
-                0.25 + Math.random() * 0.35,
-                '#b8903a', 2, elev,
-            ));
+            const a = Math.PI + Math.random() * Math.PI; // upward spread
+            this.particles.push(new Particle(x, y, Math.cos(a) * 35, Math.sin(a) * 35 - 20,
+                0.2 + Math.random() * 0.3, '#c8a04a', 2.5));
         }
     }
 
-    spawnDeathEffect(x, y, elev = 0) {
-        for (let i = 0; i < 16; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 50 + Math.random() * 120;
-            this.particles.push(new Particle(
-                x, y,
-                Math.cos(angle) * speed,
-                Math.sin(angle) * speed,
-                0.45 + Math.random() * 0.55,
-                i % 3 === 0 ? '#ffe060' : C.COLOR.BLOOD,
-                3, elev,
-            ));
+    spawnDeathEffect(x, y) {
+        for (let i = 0; i < 18; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const s = 60 + Math.random() * 140;
+            this.particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s - 80,
+                0.4 + Math.random() * 0.6,
+                i % 3 === 0 ? '#ffe060' : C.COLOR.BLOOD, 3));
         }
     }
 
-    // ── Update & Draw ─────────────────────────────────────────
     update(dt) {
         for (const p of this.particles) p.update(dt);
-        for (const ft of this.floatTexts) ft.update(dt);
+        for (const f of this.floatTexts) f.update(dt);
         this.particles = this.particles.filter(p => p.active);
-        this.floatTexts = this.floatTexts.filter(ft => ft.active);
+        this.floatTexts = this.floatTexts.filter(f => f.active);
     }
 
     draw(ctx, cam) {
         ctx.save();
+        for (const proj of this.projectiles) proj.draw(ctx, cam);
         for (const p of this.particles) p.draw(ctx, cam);
-        for (const ft of this.floatTexts) ft.draw(ctx, cam);
+        for (const f of this.floatTexts) f.draw(ctx, cam);
         ctx.restore();
     }
 
-    // ── Attack arc visual ──────────────────────────────────────
+    // Attack swing arc visual (side-view: arc in attack direction)
     drawAttackArc(ctx, cam, attacker, range, isHeavy) {
-        if (!attacker || !attacker.isAttacking) return;
-        const alpha = Math.max(0, attacker.attackTimer / (isHeavy ? 0.25 : 0.15));
-        const elev = attacker.elevation || 0;
-        const p = cam.project(attacker.x, attacker.y, elev + attacker.radius);
-        const scale = cam.perspScale(p.y);
+        if (!attacker.isAttacking) return;
+        const prog = Math.max(0, attacker.attackTimer / (isHeavy ? C.COMBAT.HEAVY_DUR : C.COMBAT.ATTACK_DUR));
+        const p = cam.project(attacker.x, attacker.y);
+        const dir = attacker.facingDir;
         ctx.save();
-        ctx.globalAlpha = alpha * 0.45;
-        ctx.fillStyle = isHeavy ? 'rgba(255,120,0,0.65)' : C.COLOR.ATTACK_RING;
+        ctx.globalAlpha = prog * 0.4;
+        const arcX = p.x + dir * attacker.radius;
+        const arcGrd = ctx.createRadialGradient(arcX, p.y, 0, arcX, p.y, range);
+        arcGrd.addColorStop(0, isHeavy ? 'rgba(255,120,0,0.8)' : 'rgba(255,220,0,0.7)');
+        arcGrd.addColorStop(1, 'transparent');
+        ctx.fillStyle = arcGrd;
         ctx.beginPath();
-        ctx.moveTo(p.x, p.y);
-        // Perspective-squish the arc slightly
-        ctx.save();
-        ctx.scale(scale, scale * C.CAMERA.TILT * 0.8);
-        ctx.translate(p.x / scale - p.x, p.y / (scale * C.CAMERA.TILT * 0.8) - p.y);
         ctx.arc(p.x, p.y, range,
-            attacker.facing - Math.PI * 5 / 6,
-            attacker.facing + Math.PI * 5 / 6);
-        ctx.restore();
-        ctx.closePath();
+            dir > 0 ? -Math.PI * 0.6 : Math.PI * 0.4,
+            dir > 0 ? Math.PI * 0.6 : Math.PI * 1.6);
         ctx.fill();
-        ctx.globalAlpha = 1;
         ctx.restore();
     }
 }

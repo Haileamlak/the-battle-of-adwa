@@ -18,19 +18,20 @@ const UI = (() => {
             'minimap-canvas',
             'victory-stats', 'defeat-stats',
             'title-screen', 'game-screen', 'pause-screen',
-            'victory-screen', 'defeat-screen',
-            'btn-start', 'btn-howto',
+            'victory-screen', 'defeat-screen', 'trailer-screen',
+            'btn-start',
             'btn-resume', 'btn-restart-pause', 'btn-menu-pause',
             'btn-play-again', 'btn-menu-victory',
             'btn-retry', 'btn-menu-defeat',
-            'btn-pause',
+            'btn-pause', 'btn-skip-trailer',
+            'trailer-image', 'trailer-text'
         ];
         ids.forEach(id => { els[id] = document.getElementById(id); });
     }
 
     // ── Screen management ─────────────────────────────────────
     function showScreen(id) {
-        ['title-screen', 'game-screen', 'pause-screen', 'victory-screen', 'defeat-screen']
+        ['title-screen', 'game-screen', 'pause-screen', 'victory-screen', 'defeat-screen', 'trailer-screen']
             .forEach(s => {
                 const el = els[s];
                 if (!el) return;
@@ -75,8 +76,8 @@ const UI = (() => {
         if (els['hud-kills']) els['hud-kills'].textContent = `⚔ Fallen: ${count}`;
     }
 
-    function updateWave(wave) {
-        if (els['hud-wave']) els['hud-wave'].textContent = `Wave: ${wave}`;
+    function updateWave(dist) {
+        if (els['hud-wave']) els['hud-wave'].textContent = `Distance: ${Math.floor(dist / 100)}m`;
     }
 
     // ── Boss HUD ─────────────────────────────────────────────
@@ -169,9 +170,49 @@ const UI = (() => {
             els['defeat-stats'].innerHTML = `
         <div class="stat-row"><span>Enemies Slain</span><span>${stats.kills}</span></div>
         <div class="stat-row"><span>Damage Dealt</span><span>${stats.damageDealt}</span></div>
-        <div class="stat-row"><span>Waves Survived</span><span>${stats.wave}</span></div>
+        <div class="stat-row"><span>Distance Traveled</span><span>${stats.dist}m</span></div>
       `;
         }
+    }
+
+    function playTrailer(onComplete) {
+        const frames = [
+            { img: 't1', text: 'የጀግኖች ምድር - Land of Heroes' },
+            { img: 't2', text: 'የነጻነት ተጋድሎ - Struggle for Freedom' },
+            { img: 't3', text: 'የአባቶች ውርስ - Heritage of Fathers' },
+            { img: 't4', text: 'ኢትዮጵያ ትቅደም - Ethiopia First' }
+        ];
+        let current = 0;
+        showScreen('trailer-screen');
+
+        const nextFrame = () => {
+            if (current >= frames.length) {
+                onComplete();
+                return;
+            }
+            const f = frames[current];
+            els['trailer-image'].src = window._assets[f.img].src;
+            els['trailer-text'].textContent = f.text;
+
+            els['trailer-image'].classList.add('show');
+            els['trailer-text'].classList.add('show');
+
+            setTimeout(() => {
+                els['trailer-image'].classList.remove('show');
+                els['trailer-text'].classList.remove('show');
+                setTimeout(() => {
+                    current++;
+                    nextFrame();
+                }, 1000);
+            }, 3000);
+        };
+
+        els['btn-skip-trailer'].onclick = () => {
+            current = frames.length;
+            onComplete();
+        };
+
+        nextFrame();
     }
 
     return {
@@ -180,7 +221,7 @@ const UI = (() => {
         showBossHUD, hideBossHUD, updateBossHealth,
         showEventBanner, showWaveBanner,
         flashHit,
-        showVictory, showDefeat,
+        showVictory, showDefeat, playTrailer,
         els,
     };
 })();

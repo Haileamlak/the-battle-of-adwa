@@ -66,13 +66,12 @@ class EventSystem {
             '⚠ Ambush!',
             (gs) => gs.player && gs.player.hp < gs.player.hpMax * 0.7 && gs.wave >= 2,
             (gs) => {
-                // Spawn behind the player
-                const angle = Math.random() * Math.PI * 2;
-                const dist = 350 + Math.random() * 100;
-                const sx = Math.max(60, Math.min(C.WORLD_W - 60, gs.player.x + Math.cos(angle) * dist));
-                const sy = Math.max(60, Math.min(C.WORLD_H - 60, gs.player.y + Math.sin(angle) * dist));
+                // Spawn from opposite side of screen in side view
+                const fromLeft = gs.player.x > gs.map.camera.x + gs.map.camera.w / 2;
+                const sx = fromLeft ? gs.map.camera.x - 30 : gs.map.camera.x + gs.map.camera.w + 30;
+                const sy = C.GROUND_Y - C.ENEMY.RIFLEMAN.RADIUS;
                 const e1 = new Rifleman(sx, sy, gs.combat);
-                const e2 = new Soldier(sx + 50, sy, gs.combat);
+                const e2 = new Soldier(sx + (fromLeft ? 55 : -55), sy, gs.combat);
                 e1.player = gs.player; e1.map = gs.map;
                 e2.player = gs.player; e2.map = gs.map;
                 // Immediately chase
@@ -114,11 +113,10 @@ class EventSystem {
             (gs) => {
                 // Spawn warning circles then delayed explosions
                 const px = gs.player.x;
-                const py = gs.player.y;
                 const shots = 2 + Math.floor(Math.random() * 2);
                 for (let i = 0; i < shots; i++) {
-                    const tx = px + (Math.random() - 0.5) * 240;
-                    const ty = py + (Math.random() - 0.5) * 240;
+                    const tx = px + (Math.random() - 0.5) * 260;
+                    const ty = C.GROUND_Y;  // lands on the ground
                     // Schedule explosion via combat particles + damage
                     setTimeout(() => {
                         if (!gs.player) return;

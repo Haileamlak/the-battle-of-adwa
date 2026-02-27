@@ -1,190 +1,193 @@
 // ============================================================
-//  CONSTANTS — Battle of Adwa
-//  Centralised game config. Tweak here first when balancing.
+//  CONSTANTS — Battle of Adwa  (side-scrolling platformer)
 // ============================================================
-
 const C = {
-  // ── Canvas & World ────────────────────────────────────────
-  WORLD_W: 2400,
-  WORLD_H: 2400,
-  TILE: 40,
+  // ── Endless World Configuration ──────────────────────────
+  CHUNK_SIZE: 1800,    // Width of one procedural segment
+  VIEW_DISTANCE: 2,    // Number of chunks to keep ahead/behind
+  PROGRESSION: {
+    DIFF_STEP: 1500,   // Distance in px to increase difficulty
+    HP_GROWTH: 0.12,   // +12% HP per step
+    DMG_GROWTH: 0.08,  // +8% DMG per step
+    SPAWN_INC: 0.10,   // +10% more enemies per step
+  },
+  WORLD_H: 930,
+  GROUND_Y: 730,
 
-  // ── Pseudo-3D Camera & Rendering ─────────────────────────
+  // ── Side-view camera ──────────────────────────────────────
   CAMERA: {
-    TILT: 0.60,   // Y-axis compression (1=top-down, 0=side-view)
-    ELEV_SCALE: 1.10,   // screen pixels per elevation unit
-    PERSP_MULT: 0.12,   // perspective size boost near camera bottom
-    // Directional light: NW direction (normalised)
-    LIGHT: { x: -0.45, y: -0.72, z: 0.52 },
-    SHADOW_ALPHA: 0.38,
-    SHADOW_STRETCH: 1.55, // how elongated blob shadows are (X * this)
+    LEAD_X: 0.35,  // player screen X ratio 
+    LEAD_Y: 0.58,  // player screen Y ratio
+    LERP_X: 0.97,
+    LERP_Y: 0.92,
+    SHAKE_DECAY: 7.0,
   },
 
-  // ── Terrain Elevation Ranges ──────────────────────────────
-  ELEV: {
-    FLAT: 0,
-    HILL_MIN: 30,
-    HILL_MAX: 70,
-    ROCK_MIN: 8,
-    ROCK_MAX: 24,
-    TREE_BASE: 0,
-  },
+  // ── Physics ───────────────────────────────────────────────
+  GRAVITY: 920,
+  TERMINAL_V: 1350,
 
   // ── Ethiopian Palette ─────────────────────────────────────
   COLOR: {
-    // Terrain
-    GROUND_BASE: '#c8a96e',
-    GROUND_DARK: '#8b6914',
-    GROUND_ROCK: '#6b5a3e',
-    HILL_LOW: '#a07840',
-    HILL_MID: '#7a5c28',
-    HILL_HIGH: '#5a3e18',
-    GRASS: '#6b7c3a',
-    PATH: '#d4b97a',
-    SKY_TOP: '#1a3a5c',
-    SKY_BOT: '#c4763a',
+    SKY_TOP: '#0c1824',
+    SKY_MID: '#38250e',
+    SKY_BOT: '#c8741c',
+    HORIZON: '#e8a040',
 
-    // Player
+    MTN_FAR: '#1e1a2e',
+    MTN_MID: '#3a2e1e',
+    MTN_NEAR: '#5a4020',
+    MTN_HILLS: '#4a5820',
+
+    GROUND: '#c8a06a',
+    GROUND_DARK: '#7a5820',
+    ROCK_TOP: '#b09060',
+    ROCK_FACE: '#5a4028',
+    ROCK_EDGE: '#d4b878',
+    GRASS: '#58701e',
+    PATH: '#d4b878',
+
     PLAYER_BODY: '#1a0a00',
-    PLAYER_CAPE: '#6b0a0a',
+    PLAYER_CAPE: '#7b0a0a',
     PLAYER_SHIELD: '#c08030',
-    PLAYER_SWORD: '#c0c0a0',
+    PLAYER_SWORD: '#c8c8a0',
+    PLAYER_WRAP: '#ffe090',
 
-    // Enemy
-    ENEMY_SOLDIER: '#3a4a2a',
-    ENEMY_OFFICER: '#5a3010',
-    ENEMY_BOSS: '#1a1a2a',
+    ENEMY_COAT: '#3a4a28',
+    ENEMY_SKIN: '#c8a068',
+    ENEMY_BOSS: '#1a2030',
 
-    // Combat
     HIT_SPARK: '#ffe060',
     BLOOD: '#8b0000',
-    ATTACK_RING: 'rgba(255,180,0,0.4)',
+    MUZZLE: '#ffffaa',
 
-    // UI
     UI_GOLD: '#d4a017',
     UI_PARCHMENT: '#c8b28a',
     UI_DARK: '#1a1208',
     UI_GREEN: '#2a5a1a',
     UI_RED: '#8b1a1a',
-    UI_BOSS: '#5a0a0a',
   },
 
   // ── Player ────────────────────────────────────────────────
   PLAYER: {
-    RADIUS: 16,
-    SPEED: 220,
-    SPRINT_MULT: 1.7,
-    DODGE_DIST: 120,
-    DODGE_DUR: 0.25,
-    DODGE_CD: 0.9,
+    RADIUS: 18,
+    SPEED: 225,
+    SPRINT_MULT: 1.68,
+    JUMP_FORCE: 610,
+    DBL_JUMP: 520,
+    COYOTE_TIME: 0.10,
+    JUMP_BUFFER: 0.12,
+    DODGE_DIST: 155,
+    DODGE_DUR: 0.21,
+    DODGE_CD: 0.85,
     HP_MAX: 100,
     STAMINA_MAX: 100,
-    STAMINA_REGEN: 25,
-    STAMINA_SPRINT: 20,
-    STAMINA_DODGE: 30,
+    STAMINA_REGEN: 28,
+    STAMINA_SPRINT: 22,
+    STAMINA_DODGE: 28,
   },
 
   // ── Combat ────────────────────────────────────────────────
   COMBAT: {
-    ATTACK_RANGE: 70,
+    ATTACK_RANGE: 88,
     ATTACK_DAMAGE: 20,
-    ATTACK_CD: 0.45,
-    HEAVY_RANGE: 80,
-    HEAVY_DAMAGE: 45,
-    HEAVY_CD: 1.2,
-    COMBO_WINDOW: 0.6,
-    COMBO_MULT: [1.0, 1.2, 1.5],
-    KNOCKBACK: 90,
-    HIT_STUN: 0.18,
-    IFRAMES: 0.35,
+    ATTACK_CD: 0.38,
+    ATTACK_DUR: 0.20,
+    HEAVY_RANGE: 112,
+    HEAVY_DAMAGE: 44,
+    HEAVY_CD: 1.10,
+    HEAVY_DUR: 0.30,
+    COMBO_WINDOW: 0.55,
+    COMBO_MULT: [1.0, 1.3, 1.7],
+    KNOCKBACK_X: 230,
+    KNOCKBACK_Y: -290,
+    HEAVY_KBX: 340,
+    HEAVY_KBY: -400,
+    HIT_STUN: 0.17,
+    IFRAMES: 0.34,
+    PROJ_SPEED: 420,
+    PROJ_DAMAGE: 14,
+    PROJ_LIFE: 2.2,
+    PROJ_GRAVITY: 260,
   },
 
-  // ── Enemy Base ────────────────────────────────────────────
+  // ── Enemies ───────────────────────────────────────────────
   ENEMY: {
     SOLDIER: {
-      RADIUS: 14,
-      SPEED: 110,
+      RADIUS: 16,
+      SPEED: 108,
       HP: 40,
-      DAMAGE: 8,
-      ATTACK_RANGE: 50,
-      ATTACK_CD: 1.2,
-      DETECT_R: 280,
-      LOSE_R: 400,
+      DAMAGE: 10,
+      ATTACK_RANGE: 62,
+      ATTACK_CD: 1.10,
+      DETECT_R: 340,
+      LOSE_R: 520,
       SCORE: 10,
+      JUMP_FORCE: 530,
     },
     RIFLEMAN: {
-      RADIUS: 13,
-      SPEED: 90,
-      HP: 30,
-      DAMAGE: 14,
-      ATTACK_RANGE: 180,
+      RADIUS: 14,
+      SPEED: 82,
+      HP: 28,
+      DAMAGE: 15,
+      ATTACK_RANGE: 360,
       ATTACK_CD: 2.0,
-      DETECT_R: 340,
-      LOSE_R: 450,
+      DETECT_R: 420,
+      LOSE_R: 640,
       SCORE: 15,
-      RANGED: true,
-      PREFERRED_DIST: 150,
+      JUMP_FORCE: 500,
+      PREFERRED_DIST: 220,
     },
     BOSS: {
-      RADIUS: 24,
-      SPEED: 100,
-      HP: 320,
-      DAMAGE: 20,
-      CHARGE_DAMAGE: 35,
-      ATTACK_RANGE: 70,
-      ATTACK_CD: 0.9,
-      DETECT_R: 500,
-      LOSE_R: 600,
-      SCORE: 200,
-      PHASE2_HP: 160,
+      RADIUS: 30,
+      SPEED: 135,
+      CHARGE_SPEED: 500,
+      HP: 370,
+      DAMAGE: 24,
+      CHARGE_DAMAGE: 40,
+      ATTACK_RANGE: 95,
+      ATTACK_CD: 0.82,
+      DETECT_R: 800,
+      SCORE: 300,
+      PHASE2_HP: 185,
+      JUMP_FORCE: 580,
     },
+  },
+
+  // ── Waves ─────────────────────────────────────────────────
+  WAVE: {
+    WAVE_DEFS: [
+      { soldiers: 4, riflemen: 0, label: 'Italian Scouts' },
+      { soldiers: 3, riflemen: 2, label: 'First Column Advance' },
+      { soldiers: 5, riflemen: 3, label: 'Albertone Pushes Forward' },
+      { soldiers: 2, riflemen: 2, boss: true, label: 'General Albertone' },
+    ],
   },
 
   // ── AI ────────────────────────────────────────────────────
   AI: {
-    PATH_INTERVAL: 0.5,
-    GROUP_SPACING: 40,
-    WANDER_RADIUS: 80,
-    WANDER_INTERVAL: 2.5,
-  },
-
-  // ── Waves & Events ────────────────────────────────────────
-  WAVE: {
-    WAVE_DEFS: [
-      { soldiers: 4, riflemen: 0, label: 'First Skirmish' },
-      { soldiers: 4, riflemen: 2, label: 'Italian Advance' },
-      { soldiers: 5, riflemen: 3, label: 'The Push' },
-      { soldiers: 3, riflemen: 2, boss: true, label: 'General Albertone' },
-    ],
-    SPAWN_DIST_MIN: 600,
-    SPAWN_DIST_MAX: 900,
+    PATROL_DIST: 180,
+    GROUP_SPACING: 44,
+    JUMP_DY: 100,
+    WANDER_INTERVAL: 3.0,
   },
 
   // ── Particles ─────────────────────────────────────────────
   PARTICLE: {
-    HIT_COUNT: 6,
+    HIT_COUNT: 7,
     DUST_COUNT: 4,
-    LIFE_MIN: 0.15,
-    LIFE_MAX: 0.5,
-  },
-
-  // ── Map ───────────────────────────────────────────────────
-  MAP: {
-    ROCK_COUNT: 28,
-    HILL_COUNT: 14,
-    TREE_COUNT: 20,
-    BUSH_COUNT: 16,
+    LIFE_MIN: 0.14,
+    LIFE_MAX: 0.52,
   },
 };
 
-// ── Input Key Map ─────────────────────────────────────────
 const KEYS = {
-  MOVE_UP: ['KeyW', 'ArrowUp'],
-  MOVE_DOWN: ['KeyS', 'ArrowDown'],
   MOVE_LEFT: ['KeyA', 'ArrowLeft'],
   MOVE_RIGHT: ['KeyD', 'ArrowRight'],
+  JUMP: ['KeyW', 'ArrowUp', 'Space'],
+  DOWN: ['KeyS', 'ArrowDown'],
   SPRINT: ['ShiftLeft', 'ShiftRight'],
-  DODGE: ['Space'],
+  DODGE: ['KeyQ'],
   ATTACK: ['KeyJ'],
   HEAVY: ['KeyK'],
   PAUSE: ['KeyP', 'Escape'],
