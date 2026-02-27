@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>የአድዋ ጦርነት — The Battle of Adwa</title>
+  <meta name="description" content="A browser action game set during the historic Battle of Adwa, 1896 — Ethiopia's victory over Italian colonial forces." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=Noto+Serif+Ethiopic:wdth,wght@75,400;75,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="ui/ui.css" />
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- TITLE SCREEN -->
+    <div id="title-screen" class="screen active">
+      <div class="title-bg-overlay"></div>
+      <div class="title-content">
+        <div class="ethiopian-cross-icon">✞</div>
+        <h1 class="title-ethiopic">የአድዋ ጦርነት</h1>
+        <h2 class="title-latin">THE BATTLE OF ADWA</h2>
+        <p class="title-subtitle">1st March 1896 — The Mountains of Adwa, Ethiopia</p>
+        <div class="title-divider">
+          <span class="divider-left">⸻</span>
+          <span class="divider-icon">⚔</span>
+          <span class="divider-right">⸻</span>
+        </div>
+        <p class="title-lore">
+          Emperor Menelik II leads Ethiopia's warriors against Italian colonial forces.<br/>
+          Defend your homeland. Drive back the invaders. <em>Ethiopia shall prevail.</em>
+        </p>
+        <div class="title-controls">
+          <div class="control-row"><kbd>WASD</kbd> / <kbd>Arrows</kbd> — Move</div>
+          <div class="control-row"><kbd>Shift</kbd> — Sprint &nbsp;|&nbsp; <kbd>Space</kbd> — Dodge</div>
+          <div class="control-row"><kbd>J</kbd> / <kbd>Click</kbd> — Attack &nbsp;|&nbsp; <kbd>K</kbd> — Heavy Attack</div>
+          <div class="control-row"><kbd>P</kbd> — Pause</div>
+        </div>
+        <button id="btn-start" class="btn-primary">⚔ Begin the Battle</button>
+        <button id="btn-howto" class="btn-secondary">How to Play</button>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- HUD -->
+      <div id="hud">
+        <div id="hud-left">
+          <div class="hud-label">ጄነራል — GENERAL FIKRE</div>
+          <div class="health-bar-container" id="player-health-container">
+            <div class="health-bar-fill" id="player-health-fill"></div>
+            <div class="health-bar-text" id="player-health-text">100 / 100</div>
+          </div>
+          <div class="stamina-bar-container" id="player-stamina-container">
+            <div class="stamina-bar-fill" id="player-stamina-fill"></div>
+          </div>
+          <div class="hud-stats">
+            <span id="hud-kills">👁 Fallen: 0</span>
+            <span id="hud-wave">Wave: 1</span>
+          </div>
+        </div>
+
+        <div id="hud-center">
+          <div id="event-banner" class="event-banner hidden"></div>
+          <div id="wave-banner" class="wave-banner hidden"></div>
+        </div>
+
+        <div id="hud-right">
+          <div id="boss-health-panel" class="hidden">
+            <div class="hud-label boss-label" id="boss-name-label">BOSS</div>
+            <div class="health-bar-container boss-bar">
+              <div class="health-bar-fill boss-fill" id="boss-health-fill"></div>
+              <div class="health-bar-text" id="boss-health-text">300 / 300</div>
+            </div>
+            <div class="boss-phase-label" id="boss-phase-label"></div>
+          </div>
+          <div id="minimap-container">
+            <canvas id="minimap-canvas" width="120" height="120"></canvas>
+            <div class="minimap-label">አድዋ — ADWA</div>
+          </div>
+        </div>
+
+        <button id="btn-pause" class="hud-btn">❙❙ Pause</button>
+      </div>
+
+      <!-- COMBAT FEEDBACK -->
+      <div id="hit-flash" class="hit-flash"></div>
+    </div>
+
+    <!-- PAUSE SCREEN -->
+    <div id="pause-screen" class="screen overlay-screen hidden">
+      <div class="overlay-content">
+        <div class="ethiopian-cross-icon">✞</div>
+        <h2>— PAUSED —</h2>
+        <p>ዕረፍት | Rest your blade, warrior</p>
+        <button id="btn-resume" class="btn-primary">▶ Resume</button>
+        <button id="btn-restart-pause" class="btn-secondary">↺ Restart</button>
+        <button id="btn-menu-pause" class="btn-secondary">⌂ Main Menu</button>
+      </div>
+    </div>
+
+    <!-- VICTORY SCREEN -->
+    <div id="victory-screen" class="screen overlay-screen hidden">
+      <div class="overlay-content victory-content">
+        <div class="victory-rays"></div>
+        <div class="ethiopian-cross-icon gold-cross">✞</div>
+        <h2 class="victory-title">የድል ቀን</h2>
+        <h3 class="victory-subtitle">VICTORY — ETHIOPIA PREVAILS!</h3>
+        <p class="victory-lore">
+          "March 1st, 1896 — Ethiopia stands sovereign.<br/>
+          The Battle of Adwa echoes through history as Africa's greatest victory<br/>
+          against colonial conquest."
+        </p>
+        <div id="victory-stats"></div>
+        <button id="btn-play-again" class="btn-primary">⚔ Fight Again</button>
+        <button id="btn-menu-victory" class="btn-secondary">⌂ Main Menu</button>
+      </div>
+    </div>
+
+    <!-- DEFEAT SCREEN -->
+    <div id="defeat-screen" class="screen overlay-screen hidden">
+      <div class="overlay-content defeat-content">
+        <div class="ethiopian-cross-icon red-cross">✞</div>
+        <h2 class="defeat-title">ሽንፈት</h2>
+        <h3 class="defeat-subtitle">THE WARRIOR HAS FALLEN</h3>
+        <p class="defeat-lore">
+          Ethiopia's mountains remember your sacrifice.<br/>
+          Rise again — the battle is not yet over.
+        </p>
+        <div id="defeat-stats"></div>
+        <button id="btn-retry" class="btn-primary">⚔ Rise Again</button>
+        <button id="btn-menu-defeat" class="btn-secondary">⌂ Main Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME MODULES (load order matters) -->
+  <script src="assets/constants.js"></script>
+  <script src="map/terrain.js"></script>
+  <script src="map/map.js"></script>
+  <script src="combat/combat.js"></script>
+  <script src="player/player.js"></script>
+  <script src="ai/state-machine.js"></script>
+  <script src="enemy/enemy.js"></script>
+  <script src="enemy/boss.js"></script>
+  <script src="events/event-system.js"></script>
+  <script src="ui/ui.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
