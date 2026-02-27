@@ -157,9 +157,8 @@ class Player {
         this.comboTimer = C.COMBAT.COMBO_WINDOW;
         this.tilt = this.facingDir * 0.45;
 
-        if (!isHeavy) {
-            this.combat.fireProjectile(this, this.x + this.facingDir * 500, this.y - 20, Math.round(C.COMBAT.ATTACK_DAMAGE * 0.8), 6, 'arrow');
-        }
+        const speedScale = isHeavy ? 1.8 : 1.0;
+        this.combat.fireProjectile(this, this.x + this.facingDir * 500, this.y - 20, Math.round((isHeavy ? C.COMBAT.HEAVY_DAMAGE : C.COMBAT.ATTACK_DAMAGE) * 0.8), 6, 'arrow', speedScale);
     }
 
     executeAttack(targets) {
@@ -185,11 +184,11 @@ class Player {
     _updateAnimations(dt) {
         // Grounding squish
         if (this.grounded) {
-            this.stretch = Math.max(1, this.stretch - dt * 4);
-            this.squash = Math.max(1, this.squash - dt * 4);
+            this.stretch = Math.max(1, this.stretch - dt * 15);
+            this.squash = Math.max(1, this.squash - dt * 15);
         } else {
-            this.stretch = 1.1 + Math.abs(this.vy / 1000);
-            this.squash = 0.9;
+            this.stretch = 1.05 + Math.abs(this.vy / 2000);
+            this.squash = 0.95;
         }
 
         // Tilt and Bob
@@ -230,7 +229,7 @@ class Player {
         ctx.scale(this.squash, this.stretch);
 
         // Apply Modular Look
-        const img = this.isAttacking ? window._assets?.player_attack : window._assets?.player_move;
+        const img = window._assets?.player_move;
         if (img && img.complete && img.naturalWidth > 0) {
             const aspect = img.naturalWidth / img.naturalHeight;
             const h = r * 12.0, w = h * aspect;

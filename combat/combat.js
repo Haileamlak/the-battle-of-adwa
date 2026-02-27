@@ -46,7 +46,8 @@ class FloatingText {
 
 // ── Projectile (bullet / cannonball) ─────────────────────────
 class Projectile {
-    constructor(x, y, vx, vy, damage, size = 5, type = 'bullet') {
+    constructor(firer, x, y, vx, vy, damage, size = 5, type = 'bullet') {
+        this.firer = firer;
         this.x = x; this.y = y; this.vx = vx; this.vy = vy;
         this.damage = damage; this.size = size;
         this.type = type;
@@ -72,11 +73,14 @@ class Projectile {
         ctx.translate(p.x, p.y); ctx.rotate(angle);
 
         if (this.type === 'arrow') {
-            // Draw a spear/arrow
-            ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.stroke();
-            ctx.fillStyle = '#e0e0e0';
-            ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(10, -4); ctx.lineTo(10, 4); ctx.fill();
+            // Draw a spear
+            ctx.strokeStyle = '#5a3e1a'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(-25, 0); ctx.lineTo(25, 0); ctx.stroke();
+            // Spear head
+            ctx.fillStyle = '#c0c0c0';
+            ctx.beginPath(); ctx.moveTo(25, 0); ctx.lineTo(12, -7); ctx.lineTo(12, 7); ctx.fill();
+            // Glow/Trailing effect
+            ctx.shadowColor = '#d4a017'; ctx.shadowBlur = 4;
         } else {
             const grd = ctx.createRadialGradient(0, 0, 0, this.size * 0.5, 0, this.size * 2.2);
             grd.addColorStop(0, '#ffffcc'); grd.addColorStop(0.4, '#ffaa30'); grd.addColorStop(1, 'transparent');
@@ -134,31 +138,39 @@ class CombatSystem {
     }
 
     // ── Ranged (fires Projectile) ──────────────────────────────
-    fireProjectile(attacker, targetX, targetY, damage, size = 5, type = 'bullet') {
+    fireProjectile(attacker, targetX, targetY, damage, size = 5, type = 'bullet', speedScale = 1) {
         const dx = targetX - attacker.x;
         const dy = targetY - attacker.y;
         const d = Math.hypot(dx, dy) || 1;
-        const spd = type === 'arrow' ? C.COMBAT.PROJ_SPEED * 1.5 : C.COMBAT.PROJ_SPEED;
+        const spd = (type === 'arrow' ? C.COMBAT.PROJ_SPEED * 1.5 : C.COMBAT.PROJ_SPEED) * speedScale;
+        // Spawn slightly offset from attacker center to avoid immediate self-collision
+        const spawnX = attacker.x + (attacker.facingDir * (attacker.radius + 10));
+        const spawnY = attacker.y - 15;
         this.projectiles.push(
-            new Projectile(attacker.x, attacker.y - 20, (dx / d) * spd, (dy / d) * spd - 50, damage, size, type)
+            new Projectile(attacker, spawnX, spawnY, (dx / d) * spd, (dy / d) * spd - 30, damage, size, type)
         );
     }
 
-    updateProjectiles(dt, platforms, target) {
+    updateProjectiles(dt, platforms, entities) {
         for (const proj of this.projectiles) {
             proj.update(dt, platforms);
             if (!proj.active) continue;
-            if (!target || !target.alive) continue;
-            const dx = target.x - proj.x, dy = target.y - proj.y;
-            if (Math.hypot(dx, dy) < target.radius + proj.size) {
-                target.receiveDamage(proj.damage, {
-                    knockbackX: proj.vx > 0 ? C.COMBAT.KNOCKBACK_X * 0.5 : -C.COMBAT.KNOCKBACK_X * 0.5,
-                    knockbackY: -80,
-                    type: 'ranged',
-                });
-                this._spawnHitEffect(target.x, target.y, 'ranged');
-                this.floatTexts.push(new FloatingText(target.x, target.y - target.radius, `-${proj.damage}`, '#ff6060', 15));
-                proj.active = false;
+
+            for (const target of entities) {
+                if (!target || !target.alive || target === proj.firer) continue;
+
+                const dx = target.x - proj.x, dy = (target.y - target.radius) - proj.y;
+                if (Math.hypot(dx, dy) < target.radius + proj.size) {
+                    target.receiveDamage(proj.damage, {
+                        knockbackX: proj.vx > 0 ? C.COMBAT.KNOCKBACK_X * 0.5 : -C.COMBAT.KNOCKBACK_X * 0.5,
+                        knockbackY: -80,
+                        type: 'ranged',
+                    });
+                    this._spawnHitEffect(target.x, target.y, 'ranged');
+                    this.floatTexts.push(new FloatingText(target.x, target.y - target.radius, `-${proj.damage}`, '#ff6060', 15));
+                    proj.active = false;
+                    break;
+                }
             }
         }
         this.projectiles = this.projectiles.filter(p => p.active);
@@ -166,14 +178,14 @@ class CombatSystem {
 
     // ── Effects ───────────────────────────────────────────────
     _spawnHitEffect(x, y, type) {
-        const n = C.PARTICLE.HIT_COUNT + (type === 'heavy' ? 5 : 0);
+        const n = C.PARTICLE.HIT_COUNT + (type === 'heavy' ? 10 : (type === 'ranged' ? 8 : 0));
         for (let i = 0; i < n; i++) {
             const a = Math.random() * Math.PI * 2;
-            const s = 70 + Math.random() * 130;
+            const s = (type === 'ranged' ? 120 : 70) + Math.random() * 130;
             this.particles.push(new Particle(x, y, Math.cos(a) * s, Math.sin(a) * s - 60,
                 C.PARTICLE.LIFE_MIN + Math.random() * (C.PARTICLE.LIFE_MAX - C.PARTICLE.LIFE_MIN),
-                type === 'heavy' ? '#ff8020' : C.COLOR.HIT_SPARK,
-                type === 'heavy' ? 4 : 3));
+                type === 'heavy' || type === 'ranged' ? '#ff8020' : C.COLOR.HIT_SPARK,
+                type === 'heavy' ? 5 : (type === 'ranged' ? 4 : 3)));
         }
         for (let i = 0; i < 3; i++) {
             const a = Math.random() * Math.PI; // downward arc for blood

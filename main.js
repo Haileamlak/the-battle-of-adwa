@@ -32,8 +32,9 @@ class Game {
         this.mmCtx = this.mmCanvas.getContext('2d');
 
         this.input = null; this.map = null; this.combat = null;
-        this.player = null; this.enemies = [];
+        this.enemies = [];
         this._lastTime = 0; this._rafId = null;
+        this._hasSeenTrailer = false;
 
         this._initAssets();
         this._initResize();
@@ -45,7 +46,6 @@ class Game {
     _initAssets() {
         window._assets = new AssetLoader();
         window._assets.load('player_move', 'assets/ethiopian_soldier1.png');
-        window._assets.load('player_attack', 'assets/ethiopian_soldier2.png');
         window._assets.load('enemy', 'assets/italian_soldier3.png');
         window._assets.load('boss', 'assets/ethiopian_soldier1.png');
         window._assets.load('t1', 'assets/thumbnail1.png');
@@ -75,15 +75,23 @@ class Game {
 
     startGame() {
         if (this._rafId) cancelAnimationFrame(this._rafId);
-        this.phase = GamePhase.TRAILER;
-        UI.playTrailer(() => {
+
+        const launch = () => {
             this._setup();
             this.phase = GamePhase.PLAYING;
             UI.showScreen('game-screen');
             this._lastTime = performance.now();
             this._rafId = requestAnimationFrame(this._loop);
-            UI.showWaveBanner('⚔ ENDLESS MARCH UPON ADWA ⚔');
-        });
+            if (!this._hasSeenTrailer) UI.showWaveBanner('⚔ ENDLESS MARCH UPON ADWA ⚔');
+            this._hasSeenTrailer = true;
+        };
+
+        if (!this._hasSeenTrailer) {
+            this.phase = GamePhase.TRAILER;
+            UI.playTrailer(launch);
+        } else {
+            launch();
+        }
     }
 
     _setup() {
@@ -137,7 +145,7 @@ class Game {
         for (const e of this.enemies) e.update(dt, this.map, this.player);
         applyGroupSeparation(liveEnemies);
 
-        this.combat.updateProjectiles(dt, [], this.player);
+        this.combat.updateProjectiles(dt, [], [this.player, ...this.enemies]);
         this.combat.update(dt);
 
         // Final Death Check (must happen after all combat logic)
