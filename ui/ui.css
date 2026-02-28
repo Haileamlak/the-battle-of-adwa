@@ -120,13 +120,21 @@ body {
   max-width: 800px;
   width: 96%;
   margin: auto;
-  padding: 60px 48px;
+  padding: 0px 48px;
   background: rgba(10, 7, 2, 0.85);
-  border: 2px solid var(--gold);
+  border-left: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
   border-radius: 8px;
   backdrop-filter: blur(12px);
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.95), 0 0 30px rgba(212, 160, 23, 0.2) inset, 0 0 15px rgba(212, 160, 23, 0.3);
   text-align: center;
+}
+
+.title-logo-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
 #title-screen {

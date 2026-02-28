@@ -30,6 +30,10 @@ class Game {
         this.ctx = this.canvas.getContext('2d');
         this.mmCanvas = document.getElementById('minimap-canvas');
         this.mmCtx = this.mmCanvas.getContext('2d');
+        
+        this.backgroundMusic = new Audio('assets/adwasoundtrack.mp4');
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.5;
 
         this.input = null; this.map = null; this.combat = null;
         this.enemies = [];
@@ -80,6 +84,10 @@ class Game {
     startGame() {
         if (this._rafId) cancelAnimationFrame(this._rafId);
 
+        if (this.backgroundMusic) {
+            this.backgroundMusic.play().catch(e => console.error("Audio play failed:", e));
+        }
+
         const launch = () => {
             this._setup();
             this.phase = GamePhase.PLAYING;
@@ -114,8 +122,26 @@ class Game {
         this.map.update(this.player, this.enemies, this.combat);
     }
 
-    pause() { if (this.phase === GamePhase.PLAYING) this.phase = GamePhase.PAUSED; UI.showScreen('pause-screen'); }
-    resume() { if (this.phase === GamePhase.PAUSED) { this.phase = GamePhase.PLAYING; UI.showScreen('game-screen'); this._lastTime = performance.now(); this._rafId = requestAnimationFrame(this._loop); } }
+    pause() { 
+        if (this.phase === GamePhase.PLAYING) {
+            this.phase = GamePhase.PAUSED; 
+            if (this.backgroundMusic) {
+                this.backgroundMusic.pause();
+            }
+            UI.showScreen('pause-screen'); 
+        }
+    }
+    resume() { 
+        if (this.phase === GamePhase.PAUSED) { 
+            this.phase = GamePhase.PLAYING; 
+            if (this.backgroundMusic) {
+                this.backgroundMusic.play().catch(e => console.error("Audio play failed:", e));
+            }
+            UI.showScreen('game-screen'); 
+            this._lastTime = performance.now(); 
+            this._rafId = requestAnimationFrame(this._loop); 
+        } 
+    }
 
     restartGame() {
         if (this._rafId) cancelAnimationFrame(this._rafId); // Stop current game loop
@@ -131,6 +157,12 @@ class Game {
         if (this._rafId) cancelAnimationFrame(this._rafId); // Stop current game loop
         this.phase = GamePhase.TITLE;
         UI.showScreen('title-screen');
+
+        if (this.backgroundMusic) {
+            this.backgroundMusic.pause();
+            this.backgroundMusic.currentTime = 0;
+        }
+        
         // Reset any ongoing game state that might persist
         this.player = null;
         this.enemies = [];
@@ -178,6 +210,10 @@ class Game {
         // Final Death Check (must happen after all combat logic)
         if (wasAlive && !this.player.alive) {
             this.phase = GamePhase.DEFEAT;
+            if (this.backgroundMusic) {
+                this.backgroundMusic.pause();
+                this.backgroundMusic.currentTime = 0;
+            }
             UI.showDefeat({
                 kills: this.player.kills,
                 damageDealt: this.player.damageDealt,
