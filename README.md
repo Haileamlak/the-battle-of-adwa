@@ -1,4 +1,4 @@
-# The Battle of Adwa
+<img src="assets/logo.png" alt="Game Logo" width="50"> # The Battle of Adwa
 
 A historical game simulating the Battle of Adwa.
 
@@ -6,8 +6,4 @@ A historical game simulating the Battle of Adwa.
 
 Simply open `index.html` in your web browser to start the game.
 
-## Screenshots
-
-![Game Logo](assets/logo.png)
 ![Battle Scene 1](assets/battleofadwa.png)
-![Battle Scene 2](assets/battleofadwa2.png)
