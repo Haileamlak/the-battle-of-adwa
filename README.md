@@ -7,7 +7,6 @@ Simply open `index.html` in your web browser to start the game.
 
 ![Menilik II & His Army](assets/battleofadwa.png)
 
-## Contributing
 
 Contributions are welcome! If you'd like to contribute to this project, please follow these steps:
 
