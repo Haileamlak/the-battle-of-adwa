@@ -88,7 +88,8 @@ function buildEnemyStateMachine(enemy) {
             }
 
             // Attack range check
-            if (dist < e.cfg.ATTACK_RANGE + e.player.radius && Math.abs(dy) < e.radius * 3) {
+            const attackRange = e.cfg.ATTACK_RANGE * (e.cfg.ATTACK_RANGE_MULTIPLIER || 1);
+            if (dist < attackRange + e.player.radius && Math.abs(dy) < e.radius * 3) {
                 e.sm.transition(AIState.ATTACK);
             }
         },

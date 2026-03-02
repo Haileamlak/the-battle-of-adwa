@@ -131,6 +131,7 @@ const C = {
       HP: 28,
       DAMAGE: 15,
       ATTACK_RANGE: 360,
+      ATTACK_RANGE_MULTIPLIER: 3,
       ATTACK_CD: 1.6,
       DETECT_R: 420,
       LOSE_R: 640,
